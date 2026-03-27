@@ -5,7 +5,7 @@ import Config
 # ======================================================================
 
 config :whispr_notification,
-  ecto_repos: [],
+  ecto_repos: [WhisprNotifications.Repo],
   generators: [binary_id: true]
 
 # ======================================================================
@@ -37,7 +37,7 @@ config :whispr_notification, :redis,
 # ======================================================================
 
 config :whispr_notification,
-  grpc_port: String.to_integer(System.get_env("GRPC_PORT", "50053"))
+  grpc_port: String.to_integer(System.get_env("GRPC_PORT", "40011"))
 
 # ======================================================================
 # Notifications & workers
@@ -72,6 +72,17 @@ config :whispr_notification, :services,
   }
 
 # ======================================================================
+# JWT auth (JWKS)
+# ======================================================================
+
+config :whispr_notification, :jwt,
+  jwks_url: System.get_env("JWT_JWKS_URL", "http://auth-service/auth/.well-known/jwks.json"),
+  issuer: System.get_env("JWT_ISSUER"),
+  audience: System.get_env("JWT_AUDIENCE"),
+  allowed_algs: String.split(System.get_env("JWT_ALLOWED_ALGS", "ES256"), ",", trim: true),
+  jwks_refresh_interval_ms: String.to_integer(System.get_env("JWT_JWKS_REFRESH_INTERVAL_MS", "300000"))
+
+# ======================================================================
 # FCM / APNS (Pigeon / Fcmex)
 # ======================================================================
 
@@ -88,6 +99,14 @@ config :pigeon, :apns,
     mode: String.to_atom(System.get_env("APNS_MODE", "dev")),
     ping_interval: 600_000
   }
+
+config :whispr_notification, WhisprNotifications.APNS,
+  adapter: Pigeon.APNS,
+  key: System.get_env("APNS_KEY_PATH"),
+  key_identifier: System.get_env("APNS_KEY_ID"),
+  team_id: System.get_env("APNS_TEAM_ID"),
+  topic: System.get_env("APNS_TOPIC"),
+  mode: String.to_atom(System.get_env("APNS_MODE", "dev"))
 
 # ======================================================================
 # Logger
